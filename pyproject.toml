@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mistikguard"
+version = "0.1.0"
+description = "Trustworthy memory and fabrication detection for LLM companions"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Panos K." }]
+keywords = ["llm", "memory", "hallucination", "grounding", "ai-companion", "provenance"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/obscuraknight/mistikguard"
+Source = "https://github.com/obscuraknight/mistikguard"
+
+[project.optional-dependencies]
+# The grounding judge needs an OpenAI-compatible client (e.g. Groq, OpenAI).
+llm = ["openai>=1.0"]
+dev = ["openai>=1.0", "pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
