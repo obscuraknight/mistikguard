@@ -1,6 +1,9 @@
 import json
 from ._log import dprint
 
+# Cap stored facts packed into one prompt, to avoid context overflow.
+DEFAULT_MAX_FACTS = 100
+
 # Trigger phrases that signal the user may be correcting something.
 _TRIGGERS = (
     "that's wrong", "thats wrong", "that is wrong", "that's not right", "thats not right",
@@ -24,13 +27,19 @@ def detect_correction(message: str) -> bool:
         dprint(f"[CORRECT] 🚨 CORRECTION DETECTED: '{message[:80]}'")
     return triggered
 
-def extract_correction(client, model, message: str, fact_texts: list) -> dict:
+def extract_correction(client, model, message: str, fact_texts: list,
+                       max_facts=DEFAULT_MAX_FACTS) -> dict:
     """Called only when detect_correction fired. Focused LLM call: given the current
     stored facts and the user's message, identify which facts to DELETE and what
     corrected truth (if any) to store. The LLM does NOT execute — it returns a plan.
     Returns {"delete": [substrings], "add_confirmed": [new fact strings]}."""
     dprint(f"\n[CORRECT] ━━━━ EXTRACTING CORRECTION")
-    facts_block = "\n".join(f"{i}. {t}" for i, t in enumerate(fact_texts)) or "(no facts stored)"
+    # Input validation: tolerate bad/None input gracefully.
+    if not message or not isinstance(message, str):
+        return {"delete": [], "add_confirmed": [], "remove_people": []}
+    fact_texts = list(fact_texts) if fact_texts else []
+    capped = fact_texts[-max_facts:] if max_facts else fact_texts
+    facts_block = "\n".join(f"{i}. {t}" for i, t in enumerate(capped)) or "(no facts stored)"
     prompt = (
         "The user may be correcting something the AI companion wrongly believes about them. "
         "Below are the facts currently stored about the user, and the user's latest message.\n\n"

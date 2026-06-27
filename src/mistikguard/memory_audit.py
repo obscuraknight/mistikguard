@@ -48,6 +48,10 @@ def claim_is_grounded(claim_sentence: str, memory_texts: list, recent_user_msgs:
     """Heuristic: is this memory-claim supported by something in her actual memory
     or recent conversation? Returns True if plausibly grounded, False if likely fabricated.
     Conservative: only flags as ungrounded when it finds NO overlap at all."""
+    if not claim_sentence or not isinstance(claim_sentence, str):
+        return True  # nothing to flag
+    memory_texts = memory_texts or []
+    recent_user_msgs = recent_user_msgs or []
     claim_norm = _normalize(claim_sentence)
     stop = set("you i me my your we us the a an is are was were that this it to of and "
                "mentioned told said shared remember when last time earlier before previously "
@@ -71,6 +75,11 @@ def audit_reply(reply: str, memory_texts: list, recent_user_msgs: list):
     Empty list = no fabricated memory-claims detected."""
     dprint(f"\n[AUDIT] ━━━━ AUDITING REPLY for memory-claims")
     ungrounded = []
+    # Input validation: tolerate bad/None input gracefully.
+    if not reply or not isinstance(reply, str):
+        return ungrounded
+    memory_texts = list(memory_texts) if memory_texts else []
+    recent_user_msgs = list(recent_user_msgs) if recent_user_msgs else []
     claims = detect_memory_claims(reply)
     if not claims:
         dprint(f"[AUDIT] ✓ no memory-claims detected → reply passes tier-1 (free check)")

@@ -4,18 +4,33 @@ word-overlap because it understands meaning, not just shared tokens."""
 import json
 from ._log import dprint
 
-def judge_claim(client, model, claim_sentence, memory_texts, recent_user_msgs):
+# Cap how many stored facts are packed into a single judge prompt, to avoid
+# overflowing the model context window when memory grows large. Callers can
+# override via the max_facts argument.
+DEFAULT_MAX_FACTS = 100
+
+def judge_claim(client, model, claim_sentence, memory_texts, recent_user_msgs,
+                max_facts=DEFAULT_MAX_FACTS):
     """Returns (grounded: bool, reason: str).
     Conservative: defaults to grounded (True) on any error, so the judge never
     produces false fabrication-alarms when uncertain."""
     dprint(f"\n[JUDGE] ━━━━ TIER-2 LLM GROUNDING JUDGE")
+
+    # Input validation FIRST, before any use of the inputs (tolerate bad/None).
+    if not claim_sentence or not isinstance(claim_sentence, str):
+        return (True, "empty or invalid claim")
+    memory_texts = list(memory_texts) if memory_texts else []
+    recent_user_msgs = list(recent_user_msgs) if recent_user_msgs else []
     dprint(f"[JUDGE] Claim: '{claim_sentence[:80]}'")
 
     if client is None:
         dprint(f"[JUDGE] ⚠️ no client available → defaulting grounded (safe default)")
         return (True, "no client")
     
-    facts_block = "\n".join(f"- {t}" for t in memory_texts if t) or "(no stored facts)"
+    capped_facts = memory_texts[-max_facts:] if max_facts else memory_texts
+    if len(memory_texts) > len(capped_facts):
+        dprint(f"[JUDGE] capped memory {len(memory_texts)} -> {len(capped_facts)} facts")
+    facts_block = "\n".join(f"- {t}" for t in capped_facts if t) or "(no stored facts)"
     recent_block = "\n".join(f"- {m}" for m in recent_user_msgs[-6:] if m) or "(none)"
     prompt = (
         "You are a fact-checker for an AI companion's memory. The companion just wrote a "

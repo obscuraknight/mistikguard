@@ -11,4 +11,4 @@ from . import long_memory
 from . import corrections
 from .storage import safe_load_json, safe_save_json
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
