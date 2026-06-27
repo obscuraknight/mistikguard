@@ -78,8 +78,11 @@ needs an LLM client.
 ## Install
 
 ```bash
-pip install mistikguard          # core only — no external dependencies
-pip install mistikguard[llm]     # adds the OpenAI-compatible client for the judge
+# Install from source (PyPI release coming soon):
+pip install git+https://github.com/obscuraknight/mistikguard.git
+
+# With the optional grounding-judge client (OpenAI-compatible):
+pip install "git+https://github.com/obscuraknight/mistikguard.git#egg=mistikguard[llm]"
 ```
 
 ---
