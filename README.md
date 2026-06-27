@@ -189,6 +189,40 @@ python tests/benchmark.py        # reproduce the benchmark (needs an API key)
 ```
 
 ---
+## Security & Limitations
+
+Mistikguard is designed to improve memory integrity in LLM companions, but it is **not** a security tool and has important limitations you should understand.
+
+### Prompt Injection
+
+The LLM-based components (`audit_judge` and `corrections`) send user messages and memory content into prompts. Like any system that uses LLMs this way, they are potentially vulnerable to **prompt injection** attacks.
+
+An attacker could potentially craft input that influences:
+- What the grounding judge accepts or rejects
+- How corrections are interpreted and applied
+
+**Recommendation**: If you are building a public-facing or high-stakes system, you should treat the output of Mistikguard as advisory rather than authoritative, or add additional guardrails at a higher level.
+
+### What Mistikguard Does NOT Protect Against
+
+- Prompt injection / jailbreaks against your main model
+- Context window overflow attacks
+- Malicious or adversarial user input in general
+- Data exfiltration through memory
+
+### What Mistikguard Helps With
+
+- Reducing accidental memory fabrication by the model
+- Making corrections more reliable through tombstones
+- Giving you visibility into when the model makes memory claims
+
+### General Advice
+
+- Always validate important facts with the user when possible
+- Consider using a smaller, cheaper, or more restricted model for the judge component
+- Do not rely on Mistikguard alone if memory accuracy is critical for safety or trust
+
+We are transparent about these limitations because we believe honest documentation leads to better systems.
 
 ## License
 
